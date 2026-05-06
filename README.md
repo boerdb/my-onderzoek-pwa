@@ -29,8 +29,24 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deploy on Proxmox LXC
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+For a self-hosted deployment in a Proxmox LXC container, use:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `deploy/lxc/README.md`
+- `deploy/lxc/setup-lxc.sh`
+
+This setup uses:
+
+- Node.js 20
+- systemd service (`my-onderzoek-pwa.service`)
+- Nginx reverse proxy (`nginx-my-onderzoek-pwa.conf`)
+
+## Deploy on Ubuntu Host
+
+For deployment on an existing Ubuntu/Debian host (e.g., Proxmox host itself), use:
+
+- `deploy/ubuntu/README.md`
+- `deploy/ubuntu/setup-ubuntu.sh`
+
+Handles all dependencies, build, and service setup without creating an LXC container.
