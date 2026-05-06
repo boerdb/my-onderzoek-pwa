@@ -1,4 +1,4 @@
-const STATIC_CACHE = "medsummary-static-v1";
+const STATIC_CACHE = "medsummary-static-v2";
 const DYNAMIC_CACHE = "medsummary-dynamic-v1";
 const OFFLINE_URL = "/offline";
 
@@ -15,12 +15,13 @@ self.addEventListener("message", (event) => {
   }
 });
 
-// Install: precache static assets
+// Install: precache static assets — wacht op "Vernieuwen" klik voor activatie
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS))
   );
-  self.skipWaiting();
+  // Geen skipWaiting() hier: de worker wacht in de wachtrij zodat
+  // UpdatePrompt de banner kan tonen en de gebruiker kan kiezen.
 });
 
 // Activate: remove old caches

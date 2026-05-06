@@ -14,6 +14,9 @@ export function UpdatePrompt() {
       const registration = await navigator.serviceWorker.getRegistration();
       if (!registration) return;
 
+      // Forceer een update-check bij elke mount
+      registration.update().catch(() => {});
+
       if (registration.waiting) {
         setWaitingWorker(registration.waiting);
       }
