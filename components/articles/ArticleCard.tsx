@@ -20,9 +20,10 @@ import { AISummaryPanel } from "@/components/ai/AISummaryPanel";
 interface ArticleCardProps {
   article: Article;
   onCompareChange?: () => void;
+  onFavoriteChange?: (isFav: boolean) => void;
 }
 
-export function ArticleCard({ article, onCompareChange }: ArticleCardProps) {
+export function ArticleCard({ article, onCompareChange, onFavoriteChange }: ArticleCardProps) {
   const [favorited, setFavorited] = useState(() => isFavorite(article.id));
   const [inCompare, setInCompare] = useState(() => isInCompare(article.id));
   const [showAbstract, setShowAbstract] = useState(false);
@@ -32,7 +33,8 @@ export function ArticleCard({ article, onCompareChange }: ArticleCardProps) {
   const handleFavorite = useCallback(() => {
     const isNowFav = toggleFavorite(article);
     setFavorited(isNowFav);
-  }, [article]);
+    onFavoriteChange?.(isNowFav);
+  }, [article, onFavoriteChange]);
 
   const handleCompare = useCallback(() => {
     const isNow = toggleCompare(article);
