@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SearchPage } from "@/components/search/SearchPage";
+import { HomeClient } from "@/components/splash/HomeClient";
 
 export const metadata: Metadata = {
   title: "MedSummary – Medisch Artikel Zoeker",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <SearchPage />;
+  return <HomeClient />;
 }
