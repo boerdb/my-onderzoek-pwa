@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, startTransition } from "react";
+import { useState, useCallback, useEffect, startTransition } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { SearchBar } from "@/components/search/SearchBar";
 import { FilterPanel } from "@/components/search/FilterPanel";
@@ -56,7 +56,6 @@ export function SearchPage() {
   const [compareArticles, setCompareArticles] = useState<Article[]>([]);
   const [showCompare, setShowCompare] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
-  const resultsAnchorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onOffline = () => setIsOffline(true);
@@ -87,23 +86,9 @@ export function SearchPage() {
     }
   }, [data, submittedQuery, filters]);
 
-  /** Scroll after pagina-/zoekcommit zodat layout (o.a. fetch-skeleton) de scroll niet overhevelt. */
   useEffect(() => {
-    if (!submittedQuery) return;
-    let cancelled = false;
-    const id = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (cancelled) return;
-        resultsAnchorRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      });
-    });
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(id);
-    };
+    if (!submittedQuery || page === 1) return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page, submittedQuery]);
 
   const handleSearch = useCallback((q: string) => {
@@ -164,15 +149,6 @@ export function SearchPage() {
             {compareArticles.length} artikelen vergelijken
           </button>
         </div>
-      )}
-
-      {submittedQuery && (
-        <div
-          ref={resultsAnchorRef}
-          tabIndex={-1}
-          className="scroll-mt-24 outline-none"
-          aria-hidden
-        />
       )}
 
       {!submittedQuery && (
@@ -247,7 +223,10 @@ export function SearchPage() {
             >
               <button
                 type="button"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => {
+                  setPage((p) => Math.max(1, p - 1));
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 disabled={page <= 1}
                 className="flex items-center gap-1 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
@@ -259,9 +238,7 @@ export function SearchPage() {
               </span>
               <button
                 type="button"
-                onClick={() =>
-                  setPage((p) => Math.min(totalPages, p + 1))
-                }
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
                 className="flex items-center gap-1 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
               >
