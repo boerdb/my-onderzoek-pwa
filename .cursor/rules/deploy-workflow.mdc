@@ -1,0 +1,47 @@
+---
+description: Deploy workflow voor MedSummary PWA – hoe je wijzigingen naar GitHub en de Ubuntu server pusht
+alwaysApply: true
+---
+
+# Deploy workflow MedSummary PWA
+
+## Stap 1 — Wijzigingen naar GitHub pushen (op Windows)
+
+```bash
+cd C:\DEV\my-onderzoek-pwa
+git status          # check wat er gewijzigd is
+git add .
+git commit -m "Korte beschrijving van wijziging"
+git push origin main
+```
+
+## Stap 2 — Server updaten (via SSH op Ubuntu)
+
+```bash
+cd /opt/my-onderzoek-pwa
+git pull origin main
+npm ci
+npm run build
+sudo systemctl restart medsummary
+sudo systemctl status --no-pager -l medsummary
+```
+
+## Snel controleren
+
+```bash
+curl -I http://127.0.0.1:3000
+```
+
+## Als iets faalt — logs bekijken
+
+```bash
+sudo journalctl -u medsummary -n 120 --no-pager
+```
+
+## Serverinfo
+
+- App draait als systemd service: `medsummary`
+- App directory: `/opt/my-onderzoek-pwa`
+- Nginx als reverse proxy, Cloudflare tunnel voor HTTPS
+- Node.js poort: `3000`
+- GitHub repo: `https://github.com/boerdb/my-onderzoek-pwa.git`
