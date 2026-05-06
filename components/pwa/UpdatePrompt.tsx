@@ -10,18 +10,23 @@ export function UpdatePrompt() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
 
-    const checkForUpdate = async () => {
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (!registration) return;
+    let cancelled = false;
 
-      // Forceer een update-check bij elke mount
+    const setup = async () => {
+      // Wacht tot de SW actief/geregistreerd is — voorkomt race met ServiceWorkerRegister
+      const registration = await navigator.serviceWorker.ready;
+      if (cancelled) return;
+
       registration.update().catch(() => {});
 
+      // Nieuwe SW staat al te wachten (bijv. na terugkeer naar tabblad)
       if (registration.waiting) {
         setWaitingWorker(registration.waiting);
+        return;
       }
 
-      registration.addEventListener("updatefound", () => {
+      // Luister naar nieuwe SW die installeert terwijl de pagina open is
+      const onUpdateFound = () => {
         const newWorker = registration.installing;
         if (!newWorker) return;
 
@@ -33,28 +38,36 @@ export function UpdatePrompt() {
             setWaitingWorker(newWorker);
           }
         });
-      });
+      };
+
+      registration.addEventListener("updatefound", onUpdateFound);
     };
 
-    checkForUpdate();
+    setup();
 
     // Controleer ook op updates na terugkeer naar tabblad
     const onFocus = () => {
       navigator.serviceWorker.getRegistration().then((reg) => reg?.update());
     };
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
 
   const handleUpdate = () => {
     if (!waitingWorker) return;
+
+    // Reload pas nadat de nieuwe SW daadwerkelijk de controle overneemt
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      () => window.location.reload(),
+      { once: true }
+    );
+
     waitingWorker.postMessage({ type: "SKIP_WAITING" });
-    waitingWorker.addEventListener("statechange", () => {
-      if (waitingWorker.state === "activated") {
-        window.location.reload();
-      }
-    });
-    window.location.reload();
   };
 
   if (!waitingWorker || dismissed) return null;
