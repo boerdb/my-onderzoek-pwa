@@ -15,6 +15,7 @@ const searchSchema = z.object({
   openAccessOnly: z.coerce.boolean().default(false),
   reviewsOnly: z.coerce.boolean().default(false),
   language: z.string().max(10).optional(),
+  cursorMark: z.string().max(500).optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { query, page, pageSize, yearFrom, yearTo, openAccessOnly, reviewsOnly, language } =
+  const { query, page, pageSize, yearFrom, yearTo, openAccessOnly, reviewsOnly, language, cursorMark } =
     parsed.data;
 
   const params = {
@@ -53,6 +54,7 @@ export async function GET(request: NextRequest) {
     page,
     pageSize,
     filters: { yearFrom, yearTo, openAccessOnly, reviewsOnly, language },
+    cursorMark,
   };
 
   try {

@@ -56,13 +56,16 @@ export async function searchEuropePMC(
   params: SearchParams
 ): Promise<SearchResult> {
   const query = buildQuery(params);
-  const offset = (params.page - 1) * params.pageSize;
+
+  // Europe PMC uses cursor-based pagination. Page 1 always uses "*".
+  // For page > 1 the caller must supply the nextCursorMark from the previous response.
+  const cursorMark = params.cursorMark ?? "*";
 
   const url = new URL(`${BASE_URL}/search`);
   url.searchParams.set("query", query);
   url.searchParams.set("format", "json");
   url.searchParams.set("pageSize", String(params.pageSize));
-  url.searchParams.set("cursorMark", offset === 0 ? "*" : String(offset));
+  url.searchParams.set("cursorMark", cursorMark);
   url.searchParams.set("resultType", "core");
   url.searchParams.set("sort", "cited desc");
 
@@ -84,6 +87,7 @@ export async function searchEuropePMC(
     page: params.page,
     pageSize: params.pageSize,
     source: "europepmc",
+    nextCursorMark: data.nextCursorMark ?? undefined,
   };
 }
 

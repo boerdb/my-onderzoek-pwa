@@ -27,7 +27,8 @@ const DEFAULT_FILTERS: SearchFilters = {
 async function fetchSearch(
   query: string,
   filters: SearchFilters,
-  page: number
+  page: number,
+  cursorMark?: string
 ): Promise<SearchResult> {
   const params = new URLSearchParams({
     query,
@@ -39,6 +40,7 @@ async function fetchSearch(
   if (filters.yearFrom) params.set("yearFrom", String(filters.yearFrom));
   if (filters.yearTo) params.set("yearTo", String(filters.yearTo));
   if (filters.language) params.set("language", filters.language);
+  if (cursorMark) params.set("cursorMark", cursorMark);
 
   const res = await fetch(`/api/search?${params}`);
   if (!res.ok) {
@@ -56,6 +58,13 @@ export function SearchPage() {
   const [compareArticles, setCompareArticles] = useState<Article[]>([]);
   const [showCompare, setShowCompare] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  /**
+   * Cursor tokens voor Europe PMC cursor-gebaseerde paginering.
+   * cursorMarks[n] = het token dat nodig is om pagina n op te halen.
+   */
+  const [cursorMarks, setCursorMarks] = useState<Record<number, string>>({});
+  /** True zodra een zoekopdracht via PubMed (fallback) resultaten geeft; PubMed gebruikt gewone offset-paginering. */
+  const [usesPubMed, setUsesPubMed] = useState(false);
 
   useEffect(() => {
     const onOffline = () => setIsOffline(true);
@@ -73,10 +82,14 @@ export function SearchPage() {
     setCompareArticles(getCompareList());
   }, []);
 
+  // Cursor mark voor de huidige pagina (alleen voor Europe PMC, pagina > 1)
+  const cursorMark = page === 1 ? undefined : cursorMarks[page];
+  const needsCursor = page > 1 && !usesPubMed;
+
   const { data, isLoading, isError, error, isFetching } = useQuery({
-    queryKey: ["search", submittedQuery, filters, page],
-    queryFn: () => fetchSearch(submittedQuery, filters, page),
-    enabled: submittedQuery.length > 0,
+    queryKey: ["search", submittedQuery, filters, page, cursorMark ?? null],
+    queryFn: () => fetchSearch(submittedQuery, filters, page, cursorMark),
+    enabled: submittedQuery.length > 0 && (!needsCursor || cursorMark !== undefined),
     placeholderData: keepPreviousData,
   });
 
@@ -85,6 +98,21 @@ export function SearchPage() {
       addSearchHistory(submittedQuery, filters, data.total);
     }
   }, [data, submittedQuery, filters]);
+
+  // Sla de nextCursorMark op voor de volgende pagina (Europe PMC cursor-paginering)
+  useEffect(() => {
+    if (!data) return;
+    if (data.source === "pubmed") {
+      setUsesPubMed(true);
+    }
+    if (data.nextCursorMark) {
+      setCursorMarks((prev) => {
+        const next = page + 1;
+        if (prev[next] === data.nextCursorMark) return prev;
+        return { ...prev, [next]: data.nextCursorMark! };
+      });
+    }
+  }, [data, page]);
 
   useEffect(() => {
     if (!submittedQuery || page === 1) return;
@@ -95,11 +123,15 @@ export function SearchPage() {
     setSubmittedQuery(q);
     setQuery(q);
     setPage(1);
+    setCursorMarks({});
+    setUsesPubMed(false);
   }, []);
 
   const handleFilterChange = useCallback((f: SearchFilters) => {
     setFilters(f);
     setPage(1);
+    setCursorMarks({});
+    setUsesPubMed(false);
   }, []);
 
   const totalPages = data ? Math.ceil(data.total / 10) : 0;

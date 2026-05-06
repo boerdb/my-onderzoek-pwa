@@ -30,6 +30,8 @@ export interface SearchParams {
   filters: SearchFilters;
   page: number;
   pageSize: number;
+  /** Europe PMC cursor token voor pagina > 1 (waarde van nextCursorMark uit vorige response) */
+  cursorMark?: string;
 }
 
 export interface SearchResult {
@@ -38,6 +40,8 @@ export interface SearchResult {
   page: number;
   pageSize: number;
   source: "europepmc" | "pubmed" | "mixed";
+  /** Europe PMC cursor token voor de volgende pagina */
+  nextCursorMark?: string;
 }
 
 export interface AISummary {
