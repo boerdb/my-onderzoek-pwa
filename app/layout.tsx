@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { QueryProvider } from "@/components/layout/QueryProvider";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
+import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,7 @@ export default function RootLayout({
             en geen medisch advies.
           </footer>
           <PwaInstallPrompt />
+          <UpdatePrompt />
         </QueryProvider>
       </body>
     </html>

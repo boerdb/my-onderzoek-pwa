@@ -8,6 +8,13 @@ const STATIC_ASSETS = [
   "/manifest.webmanifest",
 ];
 
+// Reageer op SKIP_WAITING bericht van UpdatePrompt component
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 // Install: precache static assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
