@@ -215,7 +215,7 @@ export function SearchPage() {
         </div>
       )}
 
-      {data && !isLoading && (
+      {data && !isLoading && submittedQuery && (
         <>
           <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
             {data.total.toLocaleString("nl-NL")} resultaten voor{" "}

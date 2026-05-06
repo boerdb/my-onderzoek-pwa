@@ -126,6 +126,7 @@ export function SearchBar({ initialQuery = "", onSearch, isLoading }: SearchBarP
               onClick={() => {
                 setValue("");
                 setSuggestions([]);
+                onSearch("");
                 inputRef.current?.focus();
               }}
               aria-label="Zoekopdracht wissen"
