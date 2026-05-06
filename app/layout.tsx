@@ -51,8 +51,8 @@ export default function RootLayout({
           <Header />
           <div className="flex flex-1 flex-col">{children}</div>
           <footer className="border-t border-zinc-200 py-6 text-center text-xs text-zinc-400 dark:border-zinc-800">
-            MedSummary gebruikt Europe PMC en PubMed data. AI-uittreksels zijn informatief
-            en geen medisch advies.
+            <p>MedSummary gebruikt Europe PMC en PubMed data. AI-uittreksels zijn informatief en geen medisch advies.</p>
+            <p className="mt-1">&copy; {new Date().getFullYear()} Ben de Boer</p>
           </footer>
           <PwaInstallPrompt />
           <UpdatePrompt />
