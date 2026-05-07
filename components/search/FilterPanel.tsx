@@ -50,6 +50,7 @@ export function FilterPanel({ filters, onChange }: FilterPanelProps) {
     filters.yearTo,
     filters.studyDesign,
     filters.cochraneOnly,
+    filters.dutchSources,
   ].filter(Boolean).length;
 
   return (
@@ -101,17 +102,35 @@ export function FilterPanel({ filters, onChange }: FilterPanelProps) {
               </label>
             )}
             {isEbp && (
-              <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-                <input
-                  type="checkbox"
-                  checked={filters.cochraneOnly ?? false}
-                  onChange={(e) =>
-                    update({ cochraneOnly: e.target.checked })
-                  }
-                  className="h-4 w-4 rounded border-zinc-300 text-teal-600 focus:ring-teal-500"
-                />
-                Alleen Cochrane Reviews
-              </label>
+              <>
+                <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                  <input
+                    type="checkbox"
+                    checked={filters.cochraneOnly ?? false}
+                    onChange={(e) =>
+                      update({ cochraneOnly: e.target.checked })
+                    }
+                    className="h-4 w-4 rounded border-zinc-300 text-teal-600 focus:ring-teal-500"
+                  />
+                  Alleen Cochrane Reviews
+                </label>
+                <label className="mt-2 flex cursor-pointer items-start gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                  <input
+                    type="checkbox"
+                    checked={filters.dutchSources ?? false}
+                    onChange={(e) =>
+                      update({ dutchSources: e.target.checked })
+                    }
+                    className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-teal-600 focus:ring-teal-500"
+                  />
+                  <span>
+                    Nederlandse bronnen
+                    <span className="ml-1 text-xs text-zinc-400">
+                      (OpenAIRE — NL universiteiten &amp; ZonMw)
+                    </span>
+                  </span>
+                </label>
+              </>
             )}
           </div>
 
@@ -229,6 +248,7 @@ export function FilterPanel({ filters, onChange }: FilterPanelProps) {
                   yearTo: undefined,
                   studyDesign: undefined,
                   cochraneOnly: false,
+                  dutchSources: false,
                 })
               }
               className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-700 hover:underline dark:hover:text-zinc-200"

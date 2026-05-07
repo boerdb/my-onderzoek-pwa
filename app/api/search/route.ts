@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { searchEuropePMC } from "@/lib/api/europepmc";
 import { searchPubMed } from "@/lib/api/pubmed";
+import { searchOpenAIRE } from "@/lib/api/openaire";
 import { checkRateLimit, getRateLimitKey } from "@/lib/rate-limit";
 
 const MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_SEARCH ?? "30", 10);
@@ -20,6 +21,7 @@ const searchSchema = z.object({
     .enum(["systematic_review", "rct", "meta_analysis", "cohort", "guideline"])
     .optional(),
   cochraneOnly: z.coerce.boolean().default(false),
+  dutchSources: z.coerce.boolean().default(false),
 });
 
 export async function GET(request: NextRequest) {
@@ -62,6 +64,7 @@ export async function GET(request: NextRequest) {
     cursorMark,
     studyDesign,
     cochraneOnly,
+    dutchSources,
   } = parsed.data;
 
   const params = {
@@ -76,15 +79,27 @@ export async function GET(request: NextRequest) {
       language,
       studyDesign,
       cochraneOnly,
+      dutchSources,
     },
     cursorMark,
   };
 
+  // Fire OpenAIRE request in parallel when dutchSources is enabled
+  const openAIREPromise = dutchSources
+    ? searchOpenAIRE(params, 8).catch(() => [])
+    : Promise.resolve([]);
+
   try {
     const result = await searchEuropePMC(params);
+    const dutchArticles = await openAIREPromise;
+
+    const payload = {
+      ...result,
+      ...(dutchSources ? { dutchArticles } : {}),
+    };
 
     if (result.articles.length > 0 || result.total > 0) {
-      return NextResponse.json(result, {
+      return NextResponse.json(payload, {
         headers: {
           "X-RateLimit-Remaining": String(remaining),
           "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
@@ -94,7 +109,11 @@ export async function GET(request: NextRequest) {
 
     // Fallback to PubMed
     const pubmedResult = await searchPubMed(params);
-    return NextResponse.json(pubmedResult, {
+    const pubmedPayload = {
+      ...pubmedResult,
+      ...(dutchSources ? { dutchArticles } : {}),
+    };
+    return NextResponse.json(pubmedPayload, {
       headers: {
         "X-RateLimit-Remaining": String(remaining),
         "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
@@ -103,8 +122,15 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     // Try PubMed fallback on Europe PMC error
     try {
-      const pubmedResult = await searchPubMed(params);
-      return NextResponse.json(pubmedResult, {
+      const [pubmedResult, dutchArticles] = await Promise.all([
+        searchPubMed(params),
+        openAIREPromise,
+      ]);
+      const pubmedPayload = {
+        ...pubmedResult,
+        ...(dutchSources ? { dutchArticles } : {}),
+      };
+      return NextResponse.json(pubmedPayload, {
         headers: { "X-RateLimit-Remaining": String(remaining) },
       });
     } catch {

@@ -19,6 +19,7 @@ import {
   WifiOff,
   GitCompare,
   Search,
+  Flag,
 } from "lucide-react";
 
 const DEFAULT_FILTERS: SearchFilters = {
@@ -44,6 +45,7 @@ async function fetchSearch(
   if (filters.language) params.set("language", filters.language);
   if (filters.studyDesign) params.set("studyDesign", filters.studyDesign);
   if (filters.cochraneOnly) params.set("cochraneOnly", "true");
+  if (filters.dutchSources) params.set("dutchSources", "true");
   if (cursorMark) params.set("cursorMark", cursorMark);
 
   const res = await fetch(`/api/search?${params}`);
@@ -272,6 +274,32 @@ export function SearchPage() {
                 />
               ))}
             </div>
+          )}
+
+          {data.dutchArticles && data.dutchArticles.length > 0 && (
+            <section className="mt-8" aria-label="Nederlandse bronnen">
+              <div className="mb-3 flex items-center gap-2">
+                <Flag className="h-4 w-4 text-orange-500" aria-hidden="true" />
+                <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                  Nederlandse bronnen
+                </h2>
+                <span className="rounded-full bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-600 dark:bg-orange-950/50 dark:text-orange-400">
+                  OpenAIRE · NL universiteiten &amp; ZonMw
+                </span>
+                <span className="text-xs text-zinc-400">
+                  {data.dutchArticles.length} resultaten
+                </span>
+              </div>
+              <div className="space-y-4">
+                {data.dutchArticles.map((article) => (
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    onCompareChange={refreshCompare}
+                  />
+                ))}
+              </div>
+            </section>
           )}
 
           {totalPages > 1 && (

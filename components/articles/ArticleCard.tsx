@@ -107,7 +107,11 @@ export function ArticleCard({ article, onCompareChange, onFavoriteChange }: Arti
           )}
           {isEbp && evidenceInfo && <EvidenceBadge info={evidenceInfo} />}
           <span className="text-xs text-zinc-400">
-            {article.source === "europepmc" ? "Europe PMC" : "PubMed"}
+            {article.source === "europepmc"
+              ? "Europe PMC"
+              : article.source === "openaire"
+                ? "OpenAIRE NL"
+                : "PubMed"}
           </span>
         </div>
 

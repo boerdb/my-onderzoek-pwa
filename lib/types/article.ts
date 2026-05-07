@@ -1,6 +1,6 @@
 export interface Article {
   id: string;
-  source: "europepmc" | "pubmed";
+  source: "europepmc" | "pubmed" | "openaire";
   title: string;
   authors: string[];
   publicationDate: string;
@@ -34,6 +34,7 @@ export interface SearchFilters {
   language?: string;
   studyDesign?: StudyDesign;
   cochraneOnly?: boolean;
+  dutchSources?: boolean;
 }
 
 export interface SearchParams {
@@ -53,6 +54,8 @@ export interface SearchResult {
   source: "europepmc" | "pubmed" | "mixed";
   /** Europe PMC cursor token voor de volgende pagina */
   nextCursorMark?: string;
+  /** Nederlandse publicaties via OpenAIRE (alleen gevuld wanneer dutchSources=true) */
+  dutchArticles?: Article[];
 }
 
 export interface AISummary {
