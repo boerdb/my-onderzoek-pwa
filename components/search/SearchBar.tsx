@@ -102,7 +102,7 @@ export function SearchBar({ initialQuery = "", onSearch, isLoading }: SearchBarP
           <input
             ref={inputRef}
             id="search-input"
-            type="search"
+            type="text"
             autoComplete="off"
             role="combobox"
             aria-expanded={showDropdown && dropdownItems.length > 0}

@@ -65,10 +65,14 @@ export function ArticleCard({ article, onCompareChange, onFavoriteChange }: Arti
     }
   }, [article]);
 
+  const plainAbstract = article.abstract
+    ? article.abstract.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+    : article.abstract;
+
   const truncatedAbstract =
-    article.abstract && article.abstract.length > 300
-      ? article.abstract.slice(0, 300) + "…"
-      : article.abstract;
+    plainAbstract && plainAbstract.length > 300
+      ? plainAbstract.slice(0, 300) + "…"
+      : plainAbstract;
 
   return (
     <article className="group rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900">
@@ -153,12 +157,12 @@ export function ArticleCard({ article, onCompareChange, onFavoriteChange }: Arti
         </div>
       </div>
 
-      {article.abstract && (
+      {plainAbstract && (
         <div className="mb-3">
           <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            {showAbstract ? article.abstract : truncatedAbstract}
+            {showAbstract ? plainAbstract : truncatedAbstract}
           </p>
-          {article.abstract.length > 300 && (
+          {plainAbstract.length > 300 && (
             <button
               type="button"
               onClick={() => setShowAbstract((s) => !s)}
