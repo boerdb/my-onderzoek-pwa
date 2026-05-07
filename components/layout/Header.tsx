@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect, startTransition } from "react";
-import { Moon, Sun, Stethoscope, Heart } from "lucide-react";
+import { Moon, Sun, Stethoscope, Heart, Info } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getFavorites } from "@/lib/storage/favorites";
+import { SearchHelpModal } from "@/components/layout/SearchHelpModal";
 
 export function Header() {
   const [isDark, setIsDark] = useState(false);
   const [favCount, setFavCount] = useState(0);
+  const [helpOpen, setHelpOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -43,6 +45,7 @@ export function Header() {
   };
 
   return (
+    <>
     <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
@@ -53,6 +56,15 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setHelpOpen(true)}
+            aria-label="Zoektips en Boolean operatoren"
+            className="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+          >
+            <Info className="h-5 w-5" />
+          </button>
+
           <Link
             href="/favorieten"
             aria-label={`Favorieten${favCount > 0 ? ` (${favCount})` : ""}`}
@@ -77,5 +89,8 @@ export function Header() {
         </div>
       </div>
     </header>
+
+    <SearchHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+    </>
   );
 }

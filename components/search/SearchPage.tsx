@@ -148,11 +148,11 @@ export function SearchPage() {
         </div>
       )}
 
-      <div className="mb-8 flex flex-col items-center gap-3 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">
+      <div className="mb-6 flex flex-col items-center gap-2 text-center sm:mb-8 sm:gap-3">
+        <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl md:text-4xl">
           Zoek medische artikelen
         </h1>
-        <p className="max-w-xl text-base text-zinc-500 dark:text-zinc-400">
+        <p className="max-w-xl text-sm text-zinc-500 dark:text-zinc-400 sm:text-base">
           Doorzoek miljoenen artikelen via Europe PMC en PubMed. Genereer
           AI-uittreksels met Gemini.
         </p>
