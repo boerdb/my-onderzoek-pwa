@@ -4,11 +4,26 @@ const BASE_URL =
   process.env.EUROPE_PMC_BASE_URL ||
   "https://www.ebi.ac.uk/europepmc/webservices/rest";
 
+const STUDY_DESIGN_MAP: Record<string, string> = {
+  systematic_review: 'PUB_TYPE:"Systematic Review"',
+  rct: 'PUB_TYPE:"Randomized Controlled Trial"',
+  meta_analysis: 'PUB_TYPE:"Meta-Analysis"',
+  cohort: 'TITLE_ABS:"cohort study"',
+  guideline: 'PUB_TYPE:"Practice Guideline"',
+};
+
 function buildQuery(params: SearchParams): string {
   const parts: string[] = [params.query];
 
   if (params.filters.openAccessOnly) parts.push("OPEN_ACCESS:y");
-  if (params.filters.reviewsOnly) parts.push("PUB_TYPE:Review");
+  if (params.filters.studyDesign) {
+    const mapped = STUDY_DESIGN_MAP[params.filters.studyDesign];
+    if (mapped) parts.push(mapped);
+  } else if (params.filters.reviewsOnly) {
+    parts.push("PUB_TYPE:Review");
+  }
+  if (params.filters.cochraneOnly)
+    parts.push('JOURNAL:"Cochrane Database of Systematic Reviews"');
   if (params.filters.language) parts.push(`LANG:${params.filters.language}`);
   if (params.filters.yearFrom)
     parts.push(`FIRST_PDATE:[${params.filters.yearFrom}-01-01 TO *]`);
@@ -28,6 +43,12 @@ function parseArticle(item: any): Article {
   const pmcid = item.pmcid ?? undefined;
   const doi = item.doi ?? undefined;
 
+  const pubTypes: string[] = Array.isArray(item.pubTypeList?.pubType)
+    ? item.pubTypeList.pubType
+    : item.pubTypeList?.pubType
+      ? [item.pubTypeList.pubType]
+      : [];
+
   return {
     id: item.id ?? `epmc-${item.pmid ?? Math.random()}`,
     source: "europepmc",
@@ -40,7 +61,7 @@ function parseArticle(item: any): Article {
     pmid: item.pmid ?? undefined,
     pmcid,
     isOpenAccess: item.isOpenAccess === "Y",
-    isReview: (item.pubTypeList?.pubType ?? []).includes("Review"),
+    isReview: pubTypes.includes("Review"),
     language: item.language ?? "en",
     url: doi
       ? `https://doi.org/${doi}`
@@ -49,6 +70,7 @@ function parseArticle(item: any): Article {
       ? `https://europepmc.org/articles/${pmcid}`
       : undefined,
     citationCount: item.citedByCount ?? undefined,
+    pubTypes: pubTypes.length > 0 ? pubTypes : undefined,
   };
 }
 

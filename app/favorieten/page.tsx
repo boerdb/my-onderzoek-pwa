@@ -1,26 +1,119 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Heart, Trash2, ArrowLeft } from "lucide-react";
+import { Heart, Trash2, ArrowLeft, StickyNote, Check } from "lucide-react";
 import Link from "next/link";
-import { getFavorites, removeFavorite } from "@/lib/storage/favorites";
+import {
+  getFavorites,
+  removeFavorite,
+  updateFavoriteNote,
+} from "@/lib/storage/favorites";
 import type { FavoriteArticle } from "@/lib/types/article";
 import { ArticleCard } from "@/components/articles/ArticleCard";
 import { ArticleCardSkeleton } from "@/components/articles/ArticleCardSkeleton";
+
+function NoteEditor({
+  articleId,
+  initialNote,
+  onSave,
+}: {
+  articleId: string;
+  initialNote?: string;
+  onSave: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState(initialNote ?? "");
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    updateFavoriteNote(articleId, note);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
+    onSave();
+  };
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+      >
+        <StickyNote className="h-3.5 w-3.5" />
+        {initialNote ? "Notitie bewerken" : "Notitie toevoegen"}
+      </button>
+
+      {open && (
+        <div className="mt-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-900">
+          <label
+            htmlFor={`note-${articleId}`}
+            className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400"
+          >
+            Notitie
+          </label>
+          <textarea
+            id={`note-${articleId}`}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            placeholder="Voeg een persoonlijke notitie toe, bijv. relevantie voor jouw onderzoeksvraag…"
+            className="w-full resize-none rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+          />
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSave}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              {saved ? (
+                <>
+                  <Check className="h-3.5 w-3.5" />
+                  Opgeslagen
+                </>
+              ) : (
+                "Opslaan"
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+            >
+              Annuleren
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!open && initialNote && (
+        <p className="mt-1 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs italic text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+          {initialNote}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function FavorietenPage() {
   const [favorites, setFavorites] = useState<FavoriteArticle[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     setFavorites(getFavorites());
-    setLoaded(true);
   }, []);
 
-  const handleRemove = useCallback((articleId: string) => {
-    removeFavorite(articleId);
-    setFavorites(getFavorites());
-  }, []);
+  useEffect(() => {
+    reload();
+    setLoaded(true);
+  }, [reload]);
+
+  const handleRemove = useCallback(
+    (articleId: string) => {
+      removeFavorite(articleId);
+      reload();
+    },
+    [reload]
+  );
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-8">
@@ -90,7 +183,7 @@ export default function FavorietenPage() {
           </div>
 
           <div className="space-y-4">
-            {favorites.map(({ article, savedAt }) => (
+            {favorites.map(({ article, savedAt, note }) => (
               <div key={article.id} className="relative">
                 <ArticleCard
                   article={article}
@@ -98,14 +191,21 @@ export default function FavorietenPage() {
                     if (!isFav) handleRemove(article.id);
                   }}
                 />
-                <p className="mt-1 text-right text-xs text-zinc-400 dark:text-zinc-600">
-                  Opgeslagen op{" "}
-                  {new Date(savedAt).toLocaleDateString("nl-NL", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </p>
+                <div className="mt-1 flex items-center justify-between gap-2 px-1">
+                  <NoteEditor
+                    articleId={article.id}
+                    initialNote={note}
+                    onSave={reload}
+                  />
+                  <p className="text-right text-xs text-zinc-400 dark:text-zinc-600">
+                    Opgeslagen op{" "}
+                    {new Date(savedAt).toLocaleDateString("nl-NL", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
               </div>
             ))}
           </div>

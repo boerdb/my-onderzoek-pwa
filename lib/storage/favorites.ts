@@ -35,6 +35,14 @@ export function removeFavorite(articleId: string): void {
   localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
 }
 
+export function updateFavoriteNote(articleId: string, note: string): void {
+  if (typeof window === "undefined") return;
+  const updated = getFavorites().map((f) =>
+    f.article.id === articleId ? { ...f, note: note || undefined } : f
+  );
+  localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
+}
+
 export function toggleFavorite(article: Article): boolean {
   if (isFavorite(article.id)) {
     removeFavorite(article.id);

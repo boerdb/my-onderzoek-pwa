@@ -16,6 +16,10 @@ import type { Article } from "@/lib/types/article";
 import { toggleFavorite, isFavorite } from "@/lib/storage/favorites";
 import { toggleCompare, isInCompare } from "@/lib/storage/compare";
 import { AISummaryPanel } from "@/components/ai/AISummaryPanel";
+import { useAppMode } from "@/lib/context/AppModeContext";
+import { deriveEvidenceLevel } from "@/lib/ebp/evidence-levels";
+import { EvidenceBadge } from "@/components/articles/EvidenceBadge";
+import { CaspChecklist } from "@/components/articles/CaspChecklist";
 
 interface ArticleCardProps {
   article: Article;
@@ -24,11 +28,17 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({ article, onCompareChange, onFavoriteChange }: ArticleCardProps) {
+  const { mode } = useAppMode();
+  const isEbp = mode === "ebp";
+
   const [favorited, setFavorited] = useState(() => isFavorite(article.id));
   const [inCompare, setInCompare] = useState(() => isInCompare(article.id));
   const [showAbstract, setShowAbstract] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [showCasp, setShowCasp] = useState(false);
   const [shareStatus, setShareStatus] = useState<"idle" | "copied">("idle");
+
+  const evidenceInfo = isEbp ? deriveEvidenceLevel(article) : null;
 
   const handleFavorite = useCallback(() => {
     const isNowFav = toggleFavorite(article);
@@ -89,12 +99,13 @@ export function ArticleCard({ article, onCompareChange, onFavoriteChange }: Arti
               Beperkte toegang
             </span>
           )}
-          {article.isReview && (
+          {article.isReview && !isEbp && (
             <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-950 dark:text-purple-400">
               <BookOpen className="h-3 w-3" />
               Review
             </span>
           )}
+          {isEbp && evidenceInfo && <EvidenceBadge info={evidenceInfo} />}
           <span className="text-xs text-zinc-400">
             {article.source === "europepmc" ? "Europe PMC" : "PubMed"}
           </span>
@@ -244,12 +255,30 @@ export function ArticleCard({ article, onCompareChange, onFavoriteChange }: Arti
           <Share2 className="h-3.5 w-3.5" />
           {shareStatus === "copied" ? "Gekopieerd!" : "Deel"}
         </button>
+
+        {isEbp && (
+          <button
+            type="button"
+            onClick={() => setShowCasp((s) => !s)}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              showCasp
+                ? "border-teal-300 bg-teal-50 text-teal-700 dark:border-teal-700 dark:bg-teal-950/50 dark:text-teal-400"
+                : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            }`}
+          >
+            CASP
+          </button>
+        )}
       </div>
 
       {showSummary && article.abstract && (
         <div className="mt-4">
           <AISummaryPanel article={article} />
         </div>
+      )}
+
+      {isEbp && showCasp && (
+        <CaspChecklist article={article} />
       )}
     </article>
   );

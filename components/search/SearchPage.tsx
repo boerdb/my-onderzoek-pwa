@@ -4,12 +4,14 @@ import { useState, useCallback, useEffect, startTransition } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { SearchBar } from "@/components/search/SearchBar";
 import { FilterPanel } from "@/components/search/FilterPanel";
+import { PicoForm } from "@/components/search/PicoForm";
 import { ArticleCard } from "@/components/articles/ArticleCard";
 import { ArticleCardSkeleton } from "@/components/articles/ArticleCardSkeleton";
 import { ArticleCompareDrawer } from "@/components/articles/ArticleCompareDrawer";
 import type { SearchFilters, SearchResult, Article } from "@/lib/types/article";
 import { addSearchHistory } from "@/lib/storage/history";
 import { getCompareList } from "@/lib/storage/compare";
+import { useAppMode } from "@/lib/context/AppModeContext";
 import {
   ChevronLeft,
   ChevronRight,
@@ -40,6 +42,8 @@ async function fetchSearch(
   if (filters.yearFrom) params.set("yearFrom", String(filters.yearFrom));
   if (filters.yearTo) params.set("yearTo", String(filters.yearTo));
   if (filters.language) params.set("language", filters.language);
+  if (filters.studyDesign) params.set("studyDesign", filters.studyDesign);
+  if (filters.cochraneOnly) params.set("cochraneOnly", "true");
   if (cursorMark) params.set("cursorMark", cursorMark);
 
   const res = await fetch(`/api/search?${params}`);
@@ -51,6 +55,9 @@ async function fetchSearch(
 }
 
 export function SearchPage() {
+  const { mode } = useAppMode();
+  const isEbp = mode === "ebp";
+
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [filters, setFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
@@ -149,21 +156,39 @@ export function SearchPage() {
       )}
 
       <div className="mb-6 flex flex-col items-center gap-2 text-center sm:mb-8 sm:gap-3">
-        <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl md:text-4xl">
-          Zoek medische artikelen
-        </h1>
-        <p className="max-w-xl text-sm text-zinc-500 dark:text-zinc-400 sm:text-base">
-          Doorzoek miljoenen artikelen via Europe PMC en PubMed. Genereer
-          AI-uittreksels met Gemini.
-        </p>
+        {isEbp ? (
+          <>
+            <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl md:text-4xl">
+              EBP Literatuurzoeker
+            </h1>
+            <p className="max-w-xl text-sm text-zinc-500 dark:text-zinc-400 sm:text-base">
+              Zoek evidence-based literatuur via Europe PMC en PubMed. Gebruik
+              de PICO-zoekhulp voor een gestructureerde onderzoeksvraag.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl md:text-4xl">
+              Zoek medische artikelen
+            </h1>
+            <p className="max-w-xl text-sm text-zinc-500 dark:text-zinc-400 sm:text-base">
+              Doorzoek miljoenen artikelen via Europe PMC en PubMed. Genereer
+              AI-uittreksels met Gemini.
+            </p>
+          </>
+        )}
       </div>
 
       <div className="mb-4 flex flex-col gap-3">
-        <SearchBar
-          initialQuery={query}
-          onSearch={handleSearch}
-          isLoading={isLoading || isFetching}
-        />
+        {isEbp ? (
+          <PicoForm onSearch={handleSearch} isLoading={isLoading || isFetching} />
+        ) : (
+          <SearchBar
+            initialQuery={query}
+            onSearch={handleSearch}
+            isLoading={isLoading || isFetching}
+          />
+        )}
         <FilterPanel filters={filters} onChange={handleFilterChange} />
       </div>
 
@@ -188,8 +213,9 @@ export function SearchPage() {
           <Search className="h-12 w-12 opacity-30" aria-hidden="true" />
           <p className="text-lg font-medium">Begin met zoeken</p>
           <p className="text-sm">
-            Voer een zoekterm in, zoals een aandoening, behandeling of
-            medicijn.
+            {isEbp
+              ? "Vul de PICO-velden in om een gestructureerde literatuurzoekopdracht te starten."
+              : "Voer een zoekterm in, zoals een aandoening, behandeling of medicijn."}
           </p>
         </div>
       )}

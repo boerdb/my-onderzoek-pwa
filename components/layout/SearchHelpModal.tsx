@@ -100,9 +100,9 @@ export function SearchHelpModal({ open, onClose }: SearchHelpModalProps) {
     <dialog
       ref={dialogRef}
       onClick={handleBackdropClick}
-      className="m-auto max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-0 shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm dark:bg-zinc-900"
+      className="m-auto max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-2xl bg-zinc-100 p-0 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm dark:bg-zinc-950"
     >
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-white px-5 py-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-zinc-100 px-5 py-4 dark:border-zinc-800 dark:bg-zinc-950">
         <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
           Zoektips &amp; Boolean operatoren
         </h2>
@@ -126,22 +126,22 @@ export function SearchHelpModal({ open, onClose }: SearchHelpModalProps) {
               {section.items.map((item, i) => (
                 <div
                   key={item.syntax}
-                  className={`flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-start sm:gap-4 ${
+                  className={`flex items-start gap-3 bg-zinc-50 px-4 py-3 dark:bg-zinc-900 ${
                     i > 0
-                      ? "border-t border-zinc-100 dark:border-zinc-800"
+                      ? "border-t border-zinc-200 dark:border-zinc-800"
                       : ""
                   }`}
                 >
-                  <code className="w-full shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 sm:w-36">
+                  <code className="mt-0.5 shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                     {item.syntax}
                   </code>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-zinc-700 dark:text-zinc-200">
                       {item.description}
                     </p>
                     <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
                       Voorbeeld:{" "}
-                      <code className="text-zinc-500 dark:text-zinc-400">
+                      <code className="font-mono text-zinc-500 dark:text-zinc-400">
                         {item.example}
                       </code>
                     </p>

@@ -6,6 +6,7 @@ import { QueryProvider } from "@/components/layout/QueryProvider";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
+import { AppModeProvider } from "@/lib/context/AppModeContext";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +48,7 @@ export default function RootLayout({
     <html lang="nl" className={`${geist.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="flex min-h-full flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
         <QueryProvider>
+          <AppModeProvider>
           <ServiceWorkerRegister />
           <Header />
           <div className="flex flex-1 flex-col">{children}</div>
@@ -56,6 +58,7 @@ export default function RootLayout({
           </footer>
           <PwaInstallPrompt />
           <UpdatePrompt />
+          </AppModeProvider>
         </QueryProvider>
       </body>
     </html>

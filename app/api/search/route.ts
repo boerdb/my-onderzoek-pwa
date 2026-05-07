@@ -16,6 +16,10 @@ const searchSchema = z.object({
   reviewsOnly: z.coerce.boolean().default(false),
   language: z.string().max(10).optional(),
   cursorMark: z.string().max(500).optional(),
+  studyDesign: z
+    .enum(["systematic_review", "rct", "meta_analysis", "cohort", "guideline"])
+    .optional(),
+  cochraneOnly: z.coerce.boolean().default(false),
 });
 
 export async function GET(request: NextRequest) {
@@ -46,14 +50,33 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { query, page, pageSize, yearFrom, yearTo, openAccessOnly, reviewsOnly, language, cursorMark } =
-    parsed.data;
+  const {
+    query,
+    page,
+    pageSize,
+    yearFrom,
+    yearTo,
+    openAccessOnly,
+    reviewsOnly,
+    language,
+    cursorMark,
+    studyDesign,
+    cochraneOnly,
+  } = parsed.data;
 
   const params = {
     query,
     page,
     pageSize,
-    filters: { yearFrom, yearTo, openAccessOnly, reviewsOnly, language },
+    filters: {
+      yearFrom,
+      yearTo,
+      openAccessOnly,
+      reviewsOnly,
+      language,
+      studyDesign,
+      cochraneOnly,
+    },
     cursorMark,
   };
 

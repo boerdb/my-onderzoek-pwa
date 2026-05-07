@@ -15,7 +15,16 @@ export interface Article {
   url: string;
   fullTextUrl?: string;
   citationCount?: number;
+  /** Normalized publication types from the source (e.g. "Randomized Controlled Trial", "Systematic Review") */
+  pubTypes?: string[];
 }
+
+export type StudyDesign =
+  | "systematic_review"
+  | "rct"
+  | "meta_analysis"
+  | "cohort"
+  | "guideline";
 
 export interface SearchFilters {
   yearFrom?: number;
@@ -23,6 +32,8 @@ export interface SearchFilters {
   openAccessOnly: boolean;
   reviewsOnly: boolean;
   language?: string;
+  studyDesign?: StudyDesign;
+  cochraneOnly?: boolean;
 }
 
 export interface SearchParams {

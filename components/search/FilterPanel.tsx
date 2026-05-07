@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
-import type { SearchFilters } from "@/lib/types/article";
+import type { SearchFilters, StudyDesign } from "@/lib/types/article";
+import { useAppMode } from "@/lib/context/AppModeContext";
 
 interface FilterPanelProps {
   filters: SearchFilters;
@@ -19,6 +20,15 @@ const LANGUAGES = [
   { value: "dut", label: "Nederlands" },
 ];
 
+const STUDY_DESIGNS: { value: StudyDesign | ""; label: string }[] = [
+  { value: "", label: "Alle studiedesigns" },
+  { value: "systematic_review", label: "Systematische review" },
+  { value: "meta_analysis", label: "Meta-analyse" },
+  { value: "rct", label: "Randomized Controlled Trial (RCT)" },
+  { value: "cohort", label: "Cohortonderzoek" },
+  { value: "guideline", label: "Richtlijn / Guideline" },
+];
+
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: currentYear - 1990 + 1 }, (_, i) =>
   String(currentYear - i)
@@ -26,16 +36,20 @@ const YEARS = Array.from({ length: currentYear - 1990 + 1 }, (_, i) =>
 
 export function FilterPanel({ filters, onChange }: FilterPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { mode } = useAppMode();
+  const isEbp = mode === "ebp";
 
   const update = (partial: Partial<SearchFilters>) =>
     onChange({ ...filters, ...partial });
 
   const activeCount = [
     filters.openAccessOnly,
-    filters.reviewsOnly,
+    isEbp ? false : filters.reviewsOnly,
     filters.language,
     filters.yearFrom,
     filters.yearTo,
+    filters.studyDesign,
+    filters.cochraneOnly,
   ].filter(Boolean).length;
 
   return (
@@ -43,7 +57,7 @@ export function FilterPanel({ filters, onChange }: FilterPanelProps) {
       <button
         type="button"
         onClick={() => setIsOpen((o) => !o)}
-        aria-expanded={isOpen}
+        aria-expanded={isOpen ? "true" : "false"}
         className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
       >
         <SlidersHorizontal className="h-4 w-4" />
@@ -64,7 +78,7 @@ export function FilterPanel({ filters, onChange }: FilterPanelProps) {
         <div className="mt-2 grid grid-cols-1 gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4 dark:border-zinc-700 dark:bg-zinc-900">
           <div>
             <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              Publicatietypes
+              Publicatietype
             </span>
             <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
               <input
@@ -75,16 +89,58 @@ export function FilterPanel({ filters, onChange }: FilterPanelProps) {
               />
               Alleen open access
             </label>
-            <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-              <input
-                type="checkbox"
-                checked={filters.reviewsOnly}
-                onChange={(e) => update({ reviewsOnly: e.target.checked })}
-                className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
-              />
-              Alleen reviews
-            </label>
+            {!isEbp && (
+              <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                <input
+                  type="checkbox"
+                  checked={filters.reviewsOnly}
+                  onChange={(e) => update({ reviewsOnly: e.target.checked })}
+                  className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                />
+                Alleen reviews
+              </label>
+            )}
+            {isEbp && (
+              <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                <input
+                  type="checkbox"
+                  checked={filters.cochraneOnly ?? false}
+                  onChange={(e) =>
+                    update({ cochraneOnly: e.target.checked })
+                  }
+                  className="h-4 w-4 rounded border-zinc-300 text-teal-600 focus:ring-teal-500"
+                />
+                Alleen Cochrane Reviews
+              </label>
+            )}
           </div>
+
+          {isEbp && (
+            <div>
+              <label
+                htmlFor="filter-studydesign"
+                className="mb-2 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+              >
+                Studiedesign
+              </label>
+              <select
+                id="filter-studydesign"
+                value={filters.studyDesign ?? ""}
+                onChange={(e) =>
+                  update({
+                    studyDesign: (e.target.value as StudyDesign) || undefined,
+                  })
+                }
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+              >
+                {STUDY_DESIGNS.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label
@@ -171,6 +227,8 @@ export function FilterPanel({ filters, onChange }: FilterPanelProps) {
                   language: undefined,
                   yearFrom: undefined,
                   yearTo: undefined,
+                  studyDesign: undefined,
+                  cochraneOnly: false,
                 })
               }
               className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-700 hover:underline dark:hover:text-zinc-200"

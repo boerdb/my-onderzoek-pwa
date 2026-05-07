@@ -5,11 +5,28 @@ const BASE_URL =
   "https://eutils.ncbi.nlm.nih.gov/entrez/eutils";
 const API_KEY = process.env.NCBI_API_KEY ?? "";
 
+const STUDY_DESIGN_MAP: Record<string, string> = {
+  systematic_review: "Systematic Review[Publication Type]",
+  rct: "Randomized Controlled Trial[Publication Type]",
+  meta_analysis: "Meta-Analysis[Publication Type]",
+  cohort: "cohort study[Title/Abstract]",
+  guideline: "Practice Guideline[Publication Type]",
+};
+
 function buildQuery(params: SearchParams): string {
   const parts: string[] = [params.query];
 
   if (params.filters.openAccessOnly) parts.push("free full text[Filter]");
-  if (params.filters.reviewsOnly) parts.push("Review[Publication Type]");
+  if (params.filters.studyDesign) {
+    const mapped = STUDY_DESIGN_MAP[params.filters.studyDesign];
+    if (mapped) parts.push(mapped);
+  } else if (params.filters.reviewsOnly) {
+    parts.push("Review[Publication Type]");
+  }
+  if (params.filters.cochraneOnly)
+    parts.push(
+      '"Cochrane Database of Systematic Reviews"[Journal]'
+    );
   if (params.filters.language)
     parts.push(`${params.filters.language}[Language]`);
 
@@ -64,6 +81,10 @@ function parseSummary(summary: any): Article {
   const pmid = summary.uid;
   const pmcid = undefined;
 
+  const pubTypes: string[] = (summary.pubtype ?? []).map((t: string) =>
+    t.trim()
+  );
+
   return {
     id: `pubmed-${pmid}`,
     source: "pubmed",
@@ -76,15 +97,14 @@ function parseSummary(summary: any): Article {
     pmid,
     pmcid,
     isOpenAccess: false,
-    isReview: (summary.pubtype ?? []).some((t: string) =>
-      t.toLowerCase().includes("review")
-    ),
+    isReview: pubTypes.some((t) => t.toLowerCase().includes("review")),
     language: "en",
     url: doi
       ? `https://doi.org/${doi}`
       : `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,
     fullTextUrl: undefined,
     citationCount: undefined,
+    pubTypes: pubTypes.length > 0 ? pubTypes : undefined,
   };
 }
 

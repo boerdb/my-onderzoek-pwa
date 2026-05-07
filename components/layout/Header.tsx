@@ -6,12 +6,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getFavorites } from "@/lib/storage/favorites";
 import { SearchHelpModal } from "@/components/layout/SearchHelpModal";
+import { useAppMode } from "@/lib/context/AppModeContext";
 
 export function Header() {
   const [isDark, setIsDark] = useState(false);
   const [favCount, setFavCount] = useState(0);
   const [helpOpen, setHelpOpen] = useState(false);
   const pathname = usePathname();
+  const { mode, setMode } = useAppMode();
 
   useEffect(() => {
     setFavCount(getFavorites().length);
@@ -46,51 +48,83 @@ export function Header() {
 
   return (
     <>
-    <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Stethoscope className="h-6 w-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-          <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Med<span className="text-blue-600 dark:text-blue-400">Summary</span>
-          </span>
+      <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Stethoscope className="h-6 w-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+            <span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              Med<span className="text-blue-600 dark:text-blue-400">Summary</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            {/* Mode toggle */}
+            <div
+              role="group"
+              aria-label="Zoekmodus"
+              className="mr-1 flex items-center rounded-lg border border-zinc-200 bg-zinc-100 p-0.5 dark:border-zinc-700 dark:bg-zinc-800"
+            >
+              <button
+                type="button"
+                onClick={() => setMode("medical")}
+                aria-pressed={mode === "medical" ? "true" : "false"}
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+                  mode === "medical"
+                    ? "bg-white text-blue-600 shadow-sm dark:bg-zinc-900 dark:text-blue-400"
+                    : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                }`}
+              >
+                Medisch
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("ebp")}
+                aria-pressed={mode === "ebp" ? "true" : "false"}
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+                  mode === "ebp"
+                    ? "bg-white text-teal-600 shadow-sm dark:bg-zinc-900 dark:text-teal-400"
+                    : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                }`}
+              >
+                EBP
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setHelpOpen(true)}
+              aria-label="Zoektips en Boolean operatoren"
+              className="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+            >
+              <Info className="h-5 w-5" />
+            </button>
+
+            <Link
+              href="/favorieten"
+              aria-label={`Favorieten${favCount > 0 ? ` (${favCount})` : ""}`}
+              className="relative rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+            >
+              <Heart className={`h-5 w-5 ${pathname === "/favorieten" ? "fill-red-500 text-red-500" : ""}`} />
+              {favCount > 0 && (
+                <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold leading-none text-white">
+                  {favCount > 99 ? "99+" : favCount}
+                </span>
+              )}
+            </Link>
+
+            <button
+              type="button"
+              onClick={toggleDark}
+              aria-label={isDark ? "Lichte modus" : "Donkere modus"}
+              className="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+            >
+              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
+      </header>
 
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setHelpOpen(true)}
-            aria-label="Zoektips en Boolean operatoren"
-            className="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
-          >
-            <Info className="h-5 w-5" />
-          </button>
-
-          <Link
-            href="/favorieten"
-            aria-label={`Favorieten${favCount > 0 ? ` (${favCount})` : ""}`}
-            className="relative rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
-          >
-            <Heart className={`h-5 w-5 ${pathname === "/favorieten" ? "fill-red-500 text-red-500" : ""}`} />
-            {favCount > 0 && (
-              <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold leading-none text-white">
-                {favCount > 99 ? "99+" : favCount}
-              </span>
-            )}
-          </Link>
-
-          <button
-            type="button"
-            onClick={toggleDark}
-            aria-label={isDark ? "Lichte modus" : "Donkere modus"}
-            className="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
-          >
-            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <SearchHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <SearchHelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
     </>
   );
 }
